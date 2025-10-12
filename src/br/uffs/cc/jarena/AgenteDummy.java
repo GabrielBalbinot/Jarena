@@ -8,41 +8,66 @@
 
 package br.uffs.cc.jarena;
 
+import java.util.Random;
+
 public class AgenteDummy extends Agente
 {
-	private static int qtdAgentes = 0;
-
 	private int quadrante;
 	private int[] limitesHorizontas = new int[2];
 	private int[] limitesVerticais = new int[2];
+	private boolean recebendoEnergia = false;
+	private boolean nuncaMaisAndar = false;
 
-	private boolean descendo;
-	private boolean indoParaDireita;
+	/*
+	 * Os atributos direcaoVertical e direcaoHorizontal são usados como flag para determinar como a movimentação deve ocorrer.
+	 * Se direcaoVertical é falso, então o boneco deverá subir no quadrante, e descer caso o atributo seja verdadeiro.
+	 * O mesmo ocorre com direcaoHorizontal, porém ao ser falso, o boneco nada para esquerda, sendo verdadeiro ele anda para direita.
+	 */
+	private boolean direcaoVertical; // true se estiver descendo
+	private boolean direcaoHorizontal; // true se estiver indo para direita
 
 	public AgenteDummy(Integer x, Integer y, Integer energia) {
 		super(x, y, energia);
-		qtdAgentes++;
-
-		this.descendo = setDescida();
-		this.indoParaDireita = setDireita();
+		
+		this.direcaoVertical = setDirecaoVertical();
+		this.direcaoHorizontal = setDirecaoHorizontal();
 
 		this.quadrante = setQuadrante(x, y);
 		setLimitesDoQuadrante(quadrante);
+		mudarMovimentacao();
 
 		//setDirecao(geraDirecaoAleatoria());
 	}
 	
 	public void pensa() {
 
+		/*
+		 * Se a energia do agente chegar a 100 ou menor que isso, então ele permanecerá parado até morrer,
+		 * a fim de conservar energia até o seu imutável destino
+		 */
+
+		if (nuncaMaisAndar) {
+			return;
+		}
+
+		if (getEnergia() <= 100) {
+			nuncaMaisAndar = true;
+			super.para();
+			return;
+		}
+
 		mudarMovimentacao();
 			
 		if(podeDividir() && getEnergia() >= 2000) {
 			divide();
 		}
+
+		recebendoEnergia = false;
+
 	}
 	
 	public void recebeuEnergia() {
-		// Invocado sempre que o agente recebe energia.
+		recebendoEnergia = true;
 		super.para();
 	}
 	
@@ -116,26 +141,30 @@ public class AgenteDummy extends Agente
 
 	private void bateuNosLimites(int x, int y) {
 		if (x >= limitesHorizontas[1]) {			
-			this.indoParaDireita = false;
+			this.direcaoHorizontal = false;
 
 		} else if (x <= limitesHorizontas[0]) {
 			
-			this.indoParaDireita = true;
+			this.direcaoHorizontal = true;
 		}
 
 		if (y >= limitesVerticais[1]) {
 			
-			this.descendo = false;
+			this.direcaoVertical = false;
 		} else if (y <= limitesVerticais[0]) {
 			
-			this.descendo = true;
+			this.direcaoVertical = true;
 		}
 	}
 
 	private void mudarMovimentacao() {
+
+		if (recebendoEnergia)
+			return;
+
 		bateuNosLimites(getX(), getY());
 
-		if (this.descendo && this.indoParaDireita) {
+		if (this.direcaoVertical && this.direcaoHorizontal) {
 
 			if (getDirecao() == DIREITA) {
 				setDirecao(BAIXO);
@@ -143,7 +172,7 @@ public class AgenteDummy extends Agente
 				setDirecao(DIREITA);
 			}
 
-		} else if (!this.descendo && this.indoParaDireita) {
+		} else if (!this.direcaoVertical && this.direcaoHorizontal) {
 
 			if (getDirecao() == DIREITA) {
 				setDirecao(CIMA);
@@ -151,7 +180,7 @@ public class AgenteDummy extends Agente
 				setDirecao(DIREITA);
 			}
 
-		} else if (this.descendo && !this.indoParaDireita) {
+		} else if (this.direcaoVertical && !this.direcaoHorizontal) {
 
 			if (getDirecao() == ESQUERDA) {
 				setDirecao(BAIXO);
@@ -159,7 +188,7 @@ public class AgenteDummy extends Agente
 				setDirecao(ESQUERDA);
 			}
 
-		} else if (!this.descendo && !this.indoParaDireita) {
+		} else if (!this.direcaoVertical && !this.direcaoHorizontal) {
 
 			if (getDirecao() == ESQUERDA) {
 				setDirecao(CIMA);
@@ -171,16 +200,35 @@ public class AgenteDummy extends Agente
 		
 	}
 
-	private boolean setDescida() {
-		if (qtdAgentes % 2 == 0) {
+	private boolean setDirecaoVertical() {
+
+		Random r = new Random();
+		/*
+
+		geraNumeroAleatorio é utilizada para definir se o boneco vai começar indo para baixo ou para cima,
+		fazendo mod 2
+		
+		*/
+
+		int geraNumeroAleatorio = r.nextInt(0, 1000);
+
+		if (geraNumeroAleatorio % 2 == 0) {
 			return true;
 		}
 
 		return false;
 	}
 
-	private boolean setDireita() {
-		if (qtdAgentes % 2 == 0) {
+	private boolean setDirecaoHorizontal() {
+		Random r = new Random();
+		/*
+
+		geraNumeroAleatorio é utilizada para definir se o boneco vai começar indo para direita ou para esquerda,
+		fazendo mod 2, porém aqui é o inverso da 
+		
+		*/
+		int geraNumeroAleatorio = r.nextInt(0, 1000);
+		if (geraNumeroAleatorio % 2 == 0) {
 			return false;
 		}
 
