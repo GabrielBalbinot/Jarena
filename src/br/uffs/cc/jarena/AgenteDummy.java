@@ -28,13 +28,12 @@ public class AgenteDummy extends Agente
 
 	public AgenteDummy(Integer x, Integer y, Integer energia) {
 		super(x, y, energia);
-		
 		this.direcaoVertical = setDirecaoVertical();
 		this.direcaoHorizontal = setDirecaoHorizontal();
-
 		this.quadrante = setQuadrante(x, y);
 		setLimitesDoQuadrante(quadrante);
 		mudarMovimentacao();
+		setDirecao(geraDirecaoAleatoria());
 
 		//setDirecao(geraDirecaoAleatoria());
 	}
@@ -68,6 +67,9 @@ public class AgenteDummy extends Agente
 	
 	public void recebeuEnergia() {
 		recebendoEnergia = true;
+		int a = getX();
+		int b = getY();
+		enviaMensagem(a + " " + b);
 		super.para();
 	}
 	
@@ -81,6 +83,27 @@ public class AgenteDummy extends Agente
 	}
 	
 	public void recebeuMensagem(String msg) {
+		String[] partes = msg.split(" ");
+		int x = Integer.parseInt(partes[0]);
+		int y = Integer.parseInt(partes[1]);
+		if(x>getX()){
+			while(x>getX()){
+				setDirecao(1);
+			}
+		}else{
+			while(x<getX()){
+				setDirecao(2);
+			}
+		}
+		if(y>getY()){
+			while(y>getY()){
+				setDirecao(3);
+			}
+		}else{
+			while(y<getY()){
+				setDirecao(4);
+			}
+		}
 		// Invocado sempre que um agente aliado próximo envia uma mensagem.
 	}
 	
