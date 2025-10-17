@@ -87,22 +87,14 @@ public class AgenteDummy extends Agente
 		int x = Integer.parseInt(partes[0]);
 		int y = Integer.parseInt(partes[1]);
 		if(x>getX()){
-			while(x>getX()){
-				setDirecao(1);
-			}
+			setDirecao(1);
 		}else{
-			while(x<getX()){
-				setDirecao(2);
-			}
+			setDirecao(2);
 		}
 		if(y>getY()){
-			while(y>getY()){
-				setDirecao(3);
-			}
+			setDirecao(3);
 		}else{
-			while(y<getY()){
-				setDirecao(4);
-			}
+			setDirecao(4);
 		}
 		// Invocado sempre que um agente aliado próximo envia uma mensagem.
 	}
