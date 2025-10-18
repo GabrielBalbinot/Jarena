@@ -69,39 +69,45 @@ public class AgenteDummy extends Agente
 		recebendoEnergia = true;
 		int a = getX();
 		int b = getY();
-		enviaMensagem(a + " " + b);
+		enviaMensagem('0' + " " + a + " " + b);
 		super.para();
 	}
 	
 	public void tomouDano(int energiaRestanteInimigo) {
-		// Invocado quando o agente está na mesma posição que um agente inimigo
-		// e eles estão batalhando (ambos tomam dano).
+
+		if (energiaRestanteInimigo > getEnergia()) {
+
+			this.direcaoHorizontal = !direcaoHorizontal;
+			this.direcaoVertical = !direcaoVertical;
+		}
+
+		enviaMensagem(getX() + " " + getY());
 	}
 	
 	public void ganhouCombate() {
-		// Invocado se estamos batalhando e nosso inimigo morreu.
+		
+		
 	}
 	
 	public void recebeuMensagem(String msg) {
 		String[] partes = msg.split(" ");
 		int x = Integer.parseInt(partes[0]);
 		int y = Integer.parseInt(partes[1]);
-		if(x>getX()){
-			setDirecao(1);
-		}else{
-			setDirecao(2);
+
+		if (x>getX()) {
+			direcaoHorizontal = false;
+		} else {
+			direcaoHorizontal = true;
 		}
-		if(y>getY()){
-			setDirecao(3);
-		}else{
-			setDirecao(4);
-		}
-		// Invocado sempre que um agente aliado próximo envia uma mensagem.
+		if (y>getY()) {
+			direcaoVertical = false;
+		} else {
+			direcaoVertical = true;
+		}		
 	}
 	
 	public String getEquipe() {
-		// Definimos que o nome da equipe do agente é "Fernando".
-		return "Gabriel Balbinot";
+		return "Davi e Gabriel";
 	}
 
 	private int setQuadrante(int x, int y) {
