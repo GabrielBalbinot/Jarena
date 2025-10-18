@@ -91,8 +91,9 @@ public class AgenteDummy extends Agente
 	
 	public void recebeuMensagem(String msg) {
 		String[] partes = msg.split(" ");
-		int x = Integer.parseInt(partes[0]);
-		int y = Integer.parseInt(partes[1]);
+		int cod = Integer.parseInt(partes[0]); // a ser utilizado para definir o que fazer (0 indica posição de cogumelo, 1 inimigo)
+		int x = Integer.parseInt(partes[1]);
+		int y = Integer.parseInt(partes[2]);
 
 		if (x>getX()) {
 			direcaoHorizontal = false;
