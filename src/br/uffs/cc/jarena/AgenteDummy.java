@@ -17,6 +17,10 @@ public class AgenteDummy extends Agente
 	private int[] limitesVerticais = new int[2];
 	private boolean recebendoEnergia = false;
 	private boolean nuncaMaisAndar = false;
+	private boolean movimentoInicialFeito = false;
+	private int passosRestantes = 0;
+	private boolean faseHorizontalInicial = true;
+	private int direcaoHorizontalInicial = DIREITA;
 
 	/*
 	 * Os atributos direcaoVertical e direcaoHorizontal são usados como flag para determinar como a movimentação deve ocorrer.
@@ -40,20 +44,55 @@ public class AgenteDummy extends Agente
 	
 	public void pensa() {
 
-		/*
+		 /*
 		 * Se a energia do agente chegar a 100 ou menor que isso, então ele permanecerá parado até morrer,
 		 * a fim de conservar energia até o seu imutável destino
 		 */
-
-		if (nuncaMaisAndar) {
-			return;
-		}
 
 		if (getEnergia() <= 100) {
 			nuncaMaisAndar = true;
 			super.para();
 			return;
 		}
+
+		if (nuncaMaisAndar) {
+			return;
+		}
+
+		if (!movimentoInicialFeito) {
+    		int x = getX();
+    		int y = getY();
+    		int meioX = Constants.LARGURA_MAPA / 2;
+    		int meioY = Constants.ALTURA_MAPA / 2;
+    		int idAgente = getId() * 3;
+
+    		if (passosRestantes == 0 && faseHorizontalInicial) {//Faz eles andarem na horizontal no inicio
+    		    if (x < meioX) {
+    		        direcaoHorizontalInicial = DIREITA;//se estiverem antes do meio do mapa, andam para direita
+    		    } else {
+    		        direcaoHorizontalInicial = ESQUERDA;//sn, para esquerda
+    		    }
+    		    passosRestantes = idAgente;       //vão andar a distancia do Id
+    		    setDirecao(direcaoHorizontalInicial); //qual direção cão iniciar
+    		    return;
+    		}
+
+    		if (faseHorizontalInicial && passosRestantes > 0) {//se ainda tem oq andar
+    		    setDirecao(direcaoHorizontalInicial);//define a direção inicial
+    		    passosRestantes--; //vai diminuindo os passos restantes
+    		    if (passosRestantes == 0) {//se atinge a distancia começa a andar vertical
+    		        faseHorizontalInicial = false;
+    		        if (getY() < meioY) {//se for antes do meio do mapa, anda para cima
+    		            setDirecao(CIMA);
+    		        } else {
+    		            setDirecao(BAIXO);//sn para baixo
+    		        }
+    		        movimentoInicialFeito = true;
+    		    }
+    		    return;
+    		}
+		}
+
 
 		mudarMovimentacao();
 			
@@ -69,46 +108,39 @@ public class AgenteDummy extends Agente
 		recebendoEnergia = true;
 		int a = getX();
 		int b = getY();
-		enviaMensagem('0' + " " + a + " " + b);
+		enviaMensagem(a + " " + b);
 		super.para();
 	}
 	
 	public void tomouDano(int energiaRestanteInimigo) {
-
-		if (energiaRestanteInimigo > getEnergia()) {
-
-			this.direcaoHorizontal = !direcaoHorizontal;
-			this.direcaoVertical = !direcaoVertical;
-		}
-
-		enviaMensagem(getX() + " " + getY());
+		// Invocado quando o agente está na mesma posição que um agente inimigo
+		// e eles estão batalhando (ambos tomam dano).
 	}
 	
 	public void ganhouCombate() {
-		
-		
+		// Invocado se estamos batalhando e nosso inimigo morreu.
 	}
 	
 	public void recebeuMensagem(String msg) {
 		String[] partes = msg.split(" ");
-		int cod = Integer.parseInt(partes[0]); // a ser utilizado para definir o que fazer (0 indica posição de cogumelo, 1 inimigo)
-		int x = Integer.parseInt(partes[1]);
-		int y = Integer.parseInt(partes[2]);
-
-		if (x>getX()) {
-			direcaoHorizontal = false;
-		} else {
-			direcaoHorizontal = true;
+		int x = Integer.parseInt(partes[0]);
+		int y = Integer.parseInt(partes[1]);
+		if(x>getX()){
+			setDirecao(1);
+		}else{
+			setDirecao(2);
 		}
-		if (y>getY()) {
-			direcaoVertical = false;
-		} else {
-			direcaoVertical = true;
-		}		
+		if(y>getY()){
+			setDirecao(3);
+		}else{
+			setDirecao(4);
+		}
+		// Invocado sempre que um agente aliado próximo envia uma mensagem.
 	}
 	
 	public String getEquipe() {
-		return "Davi e Gabriel";
+		// Definimos que o nome da equipe do agente é "Fernando".
+		return "Gabriel Balbinot";
 	}
 
 	private int setQuadrante(int x, int y) {
