@@ -8,6 +8,7 @@
 
 package br.uffs.cc.jarena;
 
+import java.util.Random;
 import java.awt.event.KeyEvent;
 import java.util.Vector;
 import java.lang.reflect.Constructor;
@@ -26,6 +27,8 @@ public class Arena implements Runnable {
 	private boolean ativa;
 	private long intervaloUpdate;
 	private boolean debug;
+
+	Random r = new Random();
 
 	public Arena() {
 		// Inicializamos as coisas da arena (agentes, energia, etc)
@@ -58,7 +61,7 @@ public class Arena implements Runnable {
 		int i;
 
 		for (i = 0; i < 15; i++) {
-			adicionaEntidade(new AgenteDummy(0, 0, Constants.ENTIDADE_ENERGIA_INICIAL));						
+			adicionaEntidade(new AgenteDG(0, 0, Constants.ENTIDADE_ENERGIA_INICIAL));						
 			adicionaEntidade(new AgenteInimigo((int)(Constants.LARGURA_TELA * 0.95), 0, Constants.ENTIDADE_ENERGIA_INICIAL));						
 		}
 	}

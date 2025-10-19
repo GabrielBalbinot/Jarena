@@ -1,16 +1,23 @@
 /**
- * Um exemplo de agente que anda aleatoriamente na arena. Esse agente pode ser usado como base
- * para a criação de um agente mais esperto. Para mais informações sobre métodos que podem
- * ser utilizados, veja a classe Agente.java.
+ * O agente busca uma posição inicial (centralizada) e a partir daí começa seus movimentos normais.
+ * A movimentação normal se dá de mandeira diagonal, onde cada unidade de tempo o agente alterna entre
+ * BAIXO/CIMA e DIREITA/ESQUERDA (essa alternância varia de acordo com o sentido que o agente está indo).
+ * Assim que recebe energia, o agente para e envia as coordenadas para aliados próximos. Sempre que receberem mensagens,
+ * os agentes ajustam o sentido de sua movimentação a fim de capturar o mesmo cogumelo cujas coordenadas foram recebidas.
+ * Caso engajem em combate, eles altera o sentido de sua movimentação a fim de fugir do combate. Caso a energia fique baixa, 
+ * o agente para e não andará mais pelo restante da partida, salvo uma única exceção: vencer um combate. Caso o agente vença
+ * um combate e tenha energia suficiente, ele voltará a andar e continuar a caçar mais cogumelos.
  * 
- * Gabriel Francisco Dall Rosa Balbinot <gabriel.balbinot@estudante.uffs.edu.br>
+ * 
+ * Davi Henrique Pezenatto <davinatto@gmail.com> <20240019891>
+ * Gabriel Francisco Dall Rosa Balbinot <gabriel.balbinot@estudante.uffs.edu.br> <20240019882>
  */
 
 package br.uffs.cc.jarena;
 
 import java.util.Random;
 
-public class AgenteDummy extends Agente
+public class AgenteDG extends Agente
 {
 	private int quadrante;
 	private int[] limitesHorizontas = new int[2];
@@ -18,7 +25,7 @@ public class AgenteDummy extends Agente
 	private boolean recebendoEnergia = false;
 	private boolean nuncaMaisAndar = false;
 	private boolean movimentoInicialFeito = false;
-	private int passosRestantes = 0;
+	private int passosIniciaisRestantes = 0;
 	private boolean faseHorizontalInicial = true;
 	private int direcaoHorizontalInicial = DIREITA;
 
@@ -30,7 +37,7 @@ public class AgenteDummy extends Agente
 	private boolean direcaoVertical; // true se estiver descendo
 	private boolean direcaoHorizontal; // true se estiver indo para direita
 
-	public AgenteDummy(Integer x, Integer y, Integer energia) {
+	public AgenteDG(Integer x, Integer y, Integer energia) {
 		super(x, y, energia);
 		this.direcaoVertical = setDirecaoVertical();
 		this.direcaoHorizontal = setDirecaoHorizontal();
@@ -38,8 +45,6 @@ public class AgenteDummy extends Agente
 		setLimitesDoQuadrante(quadrante);
 		mudarMovimentacao();
 		setDirecao(geraDirecaoAleatoria());
-
-		//setDirecao(geraDirecaoAleatoria());
 	}
 	
 	public void pensa() {
@@ -66,21 +71,21 @@ public class AgenteDummy extends Agente
     		int meioY = Constants.ALTURA_MAPA / 2;
     		int idAgente = getId() * 3;
 
-    		if (passosRestantes == 0 && faseHorizontalInicial) {//Faz eles andarem na horizontal no inicio
+    		if (passosIniciaisRestantes == 0 && faseHorizontalInicial) {//Faz eles andarem na horizontal no inicio
     		    if (x < meioX) {
     		        direcaoHorizontalInicial = DIREITA;//se estiverem antes do meio do mapa, andam para direita
     		    } else {
     		        direcaoHorizontalInicial = ESQUERDA;//sn, para esquerda
     		    }
-    		    passosRestantes = idAgente;       //vão andar a distancia do Id
-    		    setDirecao(direcaoHorizontalInicial); //qual direção cão iniciar
+    		    passosIniciaisRestantes = idAgente;       //vão andar a distancia do Id
+    		    setDirecao(direcaoHorizontalInicial); //qual direção vão iniciar
     		    return;
     		}
 
-    		if (faseHorizontalInicial && passosRestantes > 0) {//se ainda tem oq andar
+    		if (faseHorizontalInicial && passosIniciaisRestantes > 0) {//se ainda tem oq andar
     		    setDirecao(direcaoHorizontalInicial);//define a direção inicial
-    		    passosRestantes--; //vai diminuindo os passos restantes
-    		    if (passosRestantes == 0) {//se atinge a distancia começa a andar vertical
+    		    passosIniciaisRestantes--; //vai diminuindo os passos restantes
+    		    if (passosIniciaisRestantes == 0) {//se atinge a distancia começa a andar vertical
     		        faseHorizontalInicial = false;
     		        if (getY() < meioY) {//se for antes do meio do mapa, anda para cima
     		            setDirecao(CIMA);
@@ -111,14 +116,30 @@ public class AgenteDummy extends Agente
 		enviaMensagem(a + " " + b);
 		super.para();
 	}
+
 	
 	public void tomouDano(int energiaRestanteInimigo) {
-		// Invocado quando o agente está na mesma posição que um agente inimigo
-		// e eles estão batalhando (ambos tomam dano).
+
+		/*
+		 * O agente tenta mudar de direção caso engaje em combate
+		 */
+		if (energiaRestanteInimigo >= getEnergia()) {
+			this.direcaoHorizontal = !this.direcaoHorizontal;
+			this.direcaoVertical = !this.direcaoVertical;
+		}
+
 	}
 	
 	public void ganhouCombate() {
-		// Invocado se estamos batalhando e nosso inimigo morreu.
+
+		/*
+		 * Caso o agente estivesse parado devido ao baixo nível de energia (menor que 100)...
+		 * o agente ganha energia ao vencer algum combate, então verifica se ele tem energia suficiente para voltar a andar
+		 */
+		if (getEnergia() > 250) {
+			nuncaMaisAndar = false;
+		}
+
 	}
 	
 	public void recebeuMensagem(String msg) {
@@ -126,21 +147,20 @@ public class AgenteDummy extends Agente
 		int x = Integer.parseInt(partes[0]);
 		int y = Integer.parseInt(partes[1]);
 		if(x>getX()){
-			setDirecao(1);
+			direcaoHorizontal = true;
 		}else{
-			setDirecao(2);
+			direcaoHorizontal = false;
 		}
 		if(y>getY()){
-			setDirecao(3);
+			direcaoVertical = true;
 		}else{
-			setDirecao(4);
+			direcaoVertical = false;
 		}
-		// Invocado sempre que um agente aliado próximo envia uma mensagem.
 	}
 	
 	public String getEquipe() {
 		// Definimos que o nome da equipe do agente é "Fernando".
-		return "Gabriel Balbinot";
+		return "AgenteDG";
 	}
 
 	private int setQuadrante(int x, int y) {
@@ -189,8 +209,7 @@ public class AgenteDummy extends Agente
 			limitesVerticais[0] = Constants.ALTURA_MAPA/2;
 			limitesVerticais[1] = Constants.ALTURA_MAPA; 
 		}
-
-
+		
 	}
 
 	private void bateuNosLimites(int x, int y) {
@@ -256,17 +275,7 @@ public class AgenteDummy extends Agente
 
 	private boolean setDirecaoVertical() {
 
-		Random r = new Random();
-		/*
-
-		geraNumeroAleatorio é utilizada para definir se o boneco vai começar indo para baixo ou para cima,
-		fazendo mod 2
-		
-		*/
-
-		int geraNumeroAleatorio = r.nextInt(0, 1000);
-
-		if (geraNumeroAleatorio % 2 == 0) {
+		if (getId() % 2 == 0) {
 			return true;
 		}
 
@@ -274,15 +283,8 @@ public class AgenteDummy extends Agente
 	}
 
 	private boolean setDirecaoHorizontal() {
-		Random r = new Random();
-		/*
-
-		geraNumeroAleatorio é utilizada para definir se o boneco vai começar indo para direita ou para esquerda,
-		fazendo mod 2, porém aqui é o inverso da 
 		
-		*/
-		int geraNumeroAleatorio = r.nextInt(0, 1000);
-		if (geraNumeroAleatorio % 2 == 0) {
+		if (getId() % 2 == 0) {
 			return false;
 		}
 
@@ -290,5 +292,3 @@ public class AgenteDummy extends Agente
 	}
 
 }
-
-
